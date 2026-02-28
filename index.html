@@ -261,7 +261,7 @@
         <div class="bg-white rounded-2xl p-6 max-w-lg w-full mx-4 transform scale-0 transition-transform duration-300" id="addTaskModalContent">
             <div class="flex items-center justify-between mb-4">
                 <h3 id="addTaskModalTitle" class="text-xl font-bold text-purple-800">Thêm nhiệm vụ mới</h3>
-                <button onclick="closeAddTaskModal()" class="text-gray-500 hover:text-gray-700">
+                <button id="closeAddTaskModalHeaderBtn" class="text-gray-500 hover:text-gray-700">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -302,7 +302,7 @@
                 </div>
 
                 <div class="flex items-center justify-end space-x-2 pt-2">
-                    <button type="button" onclick="closeAddTaskModal()" class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-lg transition-colors">
+                    <button type="button" id="closeAddTaskModalBtn" class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-lg transition-colors">
                         Hủy
                     </button>
                     <button id="addTaskModalSubmit" type="submit" class="bg-purple-500 hover:bg-purple-600 text-white px-5 py-2 rounded-lg font-bold transition-colors">
