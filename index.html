@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bé Tiết Kiệm Năng Lượng Mỗi Ngày</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700&display=swap');
+        
+        body {
+            font-family: 'Be Vietnam Pro', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .task-card {
+            transition: all 0.3s ease;
+            transform-style: preserve-3d;
+        }
+        
+        .task-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .star-burst {
+            animation: starBurst 0.6s ease-out;
+        }
+        
+        @keyframes starBurst {
+            0% { transform: scale(0) rotate(0deg); opacity: 0; }
+            50% { transform: scale(1.2) rotate(180deg); opacity: 1; }
+            100% { transform: scale(1) rotate(360deg); opacity: 1; }
+        }
+        
+        .bounce {
+            animation: bounce 2s infinite;
+        }
+        
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-20px); }
+            60% { transform: translateY(-10px); }
+        }
+        
+        .completed-task {
+            background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .completed-task::after {
+            content: '✓';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 4rem;
+            color: white;
+            opacity: 0.3;
+        }
+        
+        .hero-badge {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(245, 87, 108, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(245, 87, 108, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(245, 87, 108, 0); }
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-400 via-purple-500 to-pink-500">
+    <!-- Header -->
+    <header class="bg-white/90 backdrop-blur-sm shadow-lg sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="text-4xl">🌱</div>
+                    <div>
+                        <h1 class="text-2xl font-bold text-purple-800">Bé Tiết Kiệm Năng Lượng</h1>
+                        <p class="text-sm text-gray-600">Trở thành Siêu Nhân Sống Xanh!</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="text-center">
+                        <div class="text-3xl font-bold text-yellow-500" id="totalStars">0</div>
+                        <div class="text-xs text-gray-600">⭐ Ngôi sao</div>
+                    </div>
+                    <div class="hero-badge px-4 py-2 rounded-full text-white font-bold" id="heroLevel">
+                        Học Viên
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-8">
+        <!-- Daily Tasks Section -->
+        <section class="mb-8">
+            <div class="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-2xl font-bold text-purple-800 flex items-center">
+                        <span class="text-3xl mr-3">📋</span>
+                        Nhiệm Vụ Hôm Nay
+                    </h2>
+                    <button onclick="resetDailyTasks()" class="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg transition-colors">
+                        <i class="fas fa-sync-alt mr-2"></i>Làm mới
+                    </button>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="tasksContainer">
+                    <!-- Tasks will be dynamically added here -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Progress Section -->
+        <section class="mb-8">
+            <div class="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl p-6">
+                <h2 class="text-2xl font-bold text-purple-800 mb-6 flex items-center">
+                    <span class="text-3xl mr-3">🏆</span>
+                    Tiến Độ Siêu Nhân
+                </h2>
+                
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between">
+                        <span class="text-gray-700">Học Viên</span>
+                        <div class="flex-1 mx-4 bg-gray-200 rounded-full h-4">
+                            <div class="bg-gradient-to-r from-green-400 to-blue-500 h-4 rounded-full transition-all duration-500" 
+                                 id="progress1" style="width: 0%"></div>
+                        </div>
+                        <span class="text-sm text-gray-600">0 ⭐</span>
+                    </div>
+                    
+                    <div class="flex items-center justify-between">
+                        <span class="text-gray-700">Bảo Vệ Môi Trường</span>
+                        <div class="flex-1 mx-4 bg-gray-200 rounded-full h-4">
+                            <div class="bg-gradient-to-r from-blue-400 to-purple-500 h-4 rounded-full transition-all duration-500" 
+                                 id="progress2" style="width: 0%"></div>
+                        </div>
+                        <span class="text-sm text-gray-600">3 ⭐</span>
+                    </div>
+                    
+                    <div class="flex items-center justify-between">
+                        <span class="text-gray-700 font-bold">🌟 Siêu Nhân Sống Xanh 🌟</span>
+                        <div class="flex-1 mx-4 bg-gray-200 rounded-full h-4">
+                            <div class="bg-gradient-to-r from-yellow-400 to-orange-500 h-4 rounded-full transition-all duration-500" 
+                                 id="progress3" style="width: 0%"></div>
+                        </div>
+                        <span class="text-sm text-gray-600">5 ⭐</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Achievement Section -->
+        <section>
+            <div class="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl p-6">
+                <h2 class="text-2xl font-bold text-purple-800 mb-6 flex items-center">
+                    <span class="text-3xl mr-3">🎖️</span>
+                    Thành Tích
+                </h2>
+                
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4" id="achievementsContainer">
+                    <!-- Default achievements - will be updated by JS -->
+                    <div class="text-center p-4 rounded-lg bg-gray-100 opacity-50">
+                        <div class="text-3xl mb-2 grayscale">🌟</div>
+                        <h4 class="font-bold text-sm mb-1 text-gray-600">Ngôi Sao Đầu Tiên</h4>
+                        <p class="text-xs text-gray-500">Hoàn thành nhiệm vụ đầu tiên</p>
+                    </div>
+                    <div class="text-center p-4 rounded-lg bg-gray-100 opacity-50">
+                        <div class="text-3xl mb-2 grayscale">🔥</div>
+                        <h4 class="font-bold text-sm mb-1 text-gray-600">Cháy Hết Mình</h4>
+                        <p class="text-xs text-gray-500">Hoàn thành 3 nhiệm vụ trong ngày</p>
+                    </div>
+                    <div class="text-center p-4 rounded-lg bg-gray-100 opacity-50">
+                        <div class="text-3xl mb-2 grayscale">💚</div>
+                        <h4 class="font-bold text-sm mb-1 text-gray-600">Bảo Vệ Môi Trường</h4>
+                        <p class="text-xs text-gray-500">Đạt 5 ngôi sao</p>
+                    </div>
+                    <div class="text-center p-4 rounded-lg bg-gray-100 opacity-50">
+                        <div class="text-3xl mb-2 grayscale">⚔️</div>
+                        <h4 class="font-bold text-sm mb-1 text-gray-600">Chiến Binh Xanh</h4>
+                        <p class="text-xs text-gray-500">Đạt 15 ngôi sao</p>
+                    </div>
+                    <div class="text-center p-4 rounded-lg bg-gray-100 opacity-50">
+                        <div class="text-3xl mb-2 grayscale">🏆</div>
+                        <h4 class="font-bold text-sm mb-1 text-gray-600">Đại Sứ Năng Lượng</h4>
+                        <p class="text-xs text-gray-500">Đạt 25 ngôi sao</p>
+                    </div>
+                    <div class="text-center p-4 rounded-lg bg-gray-100 opacity-50">
+                        <div class="text-3xl mb-2 grayscale">⚡</div>
+                        <h4 class="font-bold text-sm mb-1 text-gray-600">Thần Năng Lượng</h4>
+                        <p class="text-xs text-gray-500">Đạt 35 ngôi sao</p>
+                    </div>
+                    <div class="text-center p-4 rounded-lg bg-gray-100 opacity-50">
+                        <div class="text-3xl mb-2 grayscale">👑</div>
+                        <h4 class="font-bold text-sm mb-1 text-gray-600">Huyền Thoại Xanh</h4>
+                        <p class="text-xs text-gray-500">Đạt 50 ngôi sao - TỐI ĐA!</p>
+                    </div>
+                    <div class="text-center p-4 rounded-lg bg-gray-100 opacity-50">
+                        <div class="text-3xl mb-2 grayscale">🌈</div>
+                        <h4 class="font-bold text-sm mb-1 text-gray-600">Hoàn Hảo</h4>
+                        <p class="text-xs text-gray-500">Hoàn thành tất cả nhiệm vụ trong ngày</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Victory Celebration Modal -->
+    <div id="victoryModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden items-center justify-center z-50">
+        <div class="bg-gradient-to-br from-yellow-400 to-orange-500 rounded-3xl p-8 max-w-lg mx-4 transform scale-0 transition-transform duration-500" id="victoryModalContent">
+            <div class="text-center text-white">
+                <div class="text-8xl mb-4 bounce">🏆</div>
+                <h2 class="text-3xl font-bold mb-4">CHIẾN THẮNG!</h2>
+                <p class="text-xl mb-6">Bạn đã trở thành</p>
+                <div class="text-4xl font-bold mb-6 animate-pulse">🌟 SIÊU NHÂN SỐNG XANH 🌟</div>
+                <div class="mb-6">
+                    <div class="text-6xl mb-2">🎉</div>
+                    <p class="text-lg">Tổng cộng: <span id="finalStars" class="font-bold text-2xl">0</span> ⭐</p>
+                </div>
+                <div class="grid grid-cols-3 gap-2 mb-6">
+                    <div class="text-4xl animate-bounce" style="animation-delay: 0s">🌟</div>
+                    <div class="text-4xl animate-bounce" style="animation-delay: 0.2s">⭐</div>
+                    <div class="text-4xl animate-bounce" style="animation-delay: 0.4s">✨</div>
+                </div>
+                <button onclick="closeVictoryModal()" class="bg-white text-orange-500 px-8 py-4 rounded-full font-bold text-lg hover:scale-105 transition-transform">
+                    Tiếp tục phiêu lưu!
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Modal -->
+    <div id="successModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center z-50">
+        <div class="bg-white rounded-2xl p-8 max-w-md mx-4 transform scale-0 transition-transform duration-300" id="modalContent">
+            <div class="text-center">
+                <div class="text-6xl mb-4 star-burst">⭐</div>
+                <h3 class="text-2xl font-bold text-purple-800 mb-2">Tuyệt vời!</h3>
+                <p class="text-gray-600 mb-4">Bạn đã hoàn thành nhiệm vụ và nhận được 1 ngôi sao!</p>
+                <button onclick="closeModal()" class="bg-purple-500 hover:bg-purple-600 text-white px-6 py-3 rounded-lg font-bold transition-colors">
+                    Tiếp tục
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
