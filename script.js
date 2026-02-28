@@ -181,10 +181,10 @@ function createTaskCard(task, isCompleted) {
     const customActions = isCustomTaskId(task.id)
         ? `
             <div class="flex justify-center space-x-2 mb-3">
-                <button onclick="editCustomTask(${task.id})" class="px-3 py-1 rounded-lg text-sm font-semibold bg-white/80 hover:bg-white text-purple-700 border border-purple-200">
+                <button onclick="editCustomTask(${task.id})" class="px-2 py-1 rounded-lg text-xs font-semibold bg-white/80 hover:bg-white text-purple-700 border border-purple-200">
                     <i class="fas fa-pen mr-1"></i>Sửa
                 </button>
-                <button onclick="deleteCustomTask(${task.id})" class="px-3 py-1 rounded-lg text-sm font-semibold bg-white/80 hover:bg-white text-red-600 border border-red-200">
+                <button onclick="deleteCustomTask(${task.id})" class="px-2 py-1 rounded-lg text-xs font-semibold bg-white/80 hover:bg-white text-red-600 border border-red-200">
                     <i class="fas fa-trash mr-1"></i>Xóa
                 </button>
             </div>
@@ -192,11 +192,11 @@ function createTaskCard(task, isCompleted) {
         : '';
     
     card.innerHTML = `
-        <div class="text-center">
+        <div class="text-center flex flex-col h-full">
             ${customActions}
             <div class="text-5xl mb-3 ${isCompleted ? 'grayscale' : ''}">${task.icon}</div>
             <h3 class="font-bold text-gray-800 mb-2">${task.title}</h3>
-            <p class="text-sm text-gray-600 mb-4">${task.description}</p>
+            <p class="text-sm text-gray-600 mb-4 flex-grow">${task.description}</p>
             <div class="flex justify-center items-center space-x-1 mb-4">
                 ${Array(task.stars).fill('').map(() => '<span class="text-yellow-400">⭐</span>').join('')}
             </div>
@@ -666,6 +666,10 @@ style.textContent = `
         transition: all 0.3s ease;
         transform-style: preserve-3d;
         cursor: pointer;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        min-height: 280px;
     }
     
     .task-card:hover {
@@ -1350,6 +1354,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Add event listeners for buttons
     const addTaskBtn = document.getElementById('addTaskBtn');
     const resetTasksBtn = document.getElementById('resetTasksBtn');
+    const closeAddTaskModalBtn = document.getElementById('closeAddTaskModalBtn');
     
     if (addTaskBtn) {
         addTaskBtn.addEventListener('click', function() {
@@ -1369,6 +1374,28 @@ document.addEventListener('DOMContentLoaded', function() {
                 window.resetDailyTasks();
             } else {
                 console.error('❌ resetDailyTasks not available!');
+            }
+        });
+    }
+    
+    if (closeAddTaskModalBtn) {
+        closeAddTaskModalBtn.addEventListener('click', function() {
+            console.log('❌ Close modal button clicked!');
+            if (window.closeAddTaskModal) {
+                window.closeAddTaskModal();
+            } else {
+                console.error('❌ closeAddTaskModal not available!');
+            }
+        });
+    }
+    
+    if (closeAddTaskModalHeaderBtn) {
+        closeAddTaskModalHeaderBtn.addEventListener('click', function() {
+            console.log('❌ Close modal header button clicked!');
+            if (window.closeAddTaskModal) {
+                window.closeAddTaskModal();
+            } else {
+                console.error('❌ closeAddTaskModal not available!');
             }
         });
     }
