@@ -109,9 +109,14 @@
                         <span class="text-3xl mr-3">📋</span>
                         Nhiệm Vụ Hôm Nay
                     </h2>
-                    <button onclick="resetDailyTasks()" class="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg transition-colors">
-                        <i class="fas fa-sync-alt mr-2"></i>Làm mới
-                    </button>
+                    <div class="flex items-center space-x-2">
+                        <button id="addTaskBtn" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-colors">
+                            <i class="fas fa-plus mr-2"></i>Thêm nhiệm vụ
+                        </button>
+                        <button id="resetTasksBtn" class="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg transition-colors">
+                            <i class="fas fa-sync-alt mr-2"></i>Làm mới
+                        </button>
+                    </div>
                 </div>
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="tasksContainer">
@@ -249,6 +254,62 @@
                     Tiếp tục
                 </button>
             </div>
+        </div>
+    </div>
+
+    <div id="addTaskModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center z-50">
+        <div class="bg-white rounded-2xl p-6 max-w-lg w-full mx-4 transform scale-0 transition-transform duration-300" id="addTaskModalContent">
+            <div class="flex items-center justify-between mb-4">
+                <h3 id="addTaskModalTitle" class="text-xl font-bold text-purple-800">Thêm nhiệm vụ mới</h3>
+                <button onclick="closeAddTaskModal()" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <form onsubmit="submitNewTask(event)" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Tên nhiệm vụ</label>
+                    <input id="newTaskTitle" type="text" required maxlength="60" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-400" placeholder="Ví dụ: Tắt quạt khi không dùng" />
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Mô tả</label>
+                    <input id="newTaskDescription" type="text" required maxlength="120" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-400" placeholder="Ví dụ: Giúp tiết kiệm điện mỗi ngày" />
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">Icon (emoji)</label>
+                        <input id="newTaskIcon" type="text" maxlength="4" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-400" placeholder="🌿" />
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">Số sao</label>
+                        <select id="newTaskStars" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-400">
+                            <option value="1">1 ⭐</option>
+                            <option value="2">2 ⭐</option>
+                            <option value="3">3 ⭐</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">Màu</label>
+                        <select id="newTaskColor" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-400">
+                            <option value="from-green-400 to-emerald-500">Xanh lá</option>
+                            <option value="from-blue-400 to-cyan-500">Xanh dương</option>
+                            <option value="from-yellow-400 to-orange-500">Vàng cam</option>
+                            <option value="from-purple-400 to-pink-500">Tím hồng</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-end space-x-2 pt-2">
+                    <button type="button" onclick="closeAddTaskModal()" class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-lg transition-colors">
+                        Hủy
+                    </button>
+                    <button id="addTaskModalSubmit" type="submit" class="bg-purple-500 hover:bg-purple-600 text-white px-5 py-2 rounded-lg font-bold transition-colors">
+                        Lưu nhiệm vụ
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 
