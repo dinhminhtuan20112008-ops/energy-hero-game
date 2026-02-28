@@ -7,6 +7,13 @@ let gameState = {
     dailyTasksCompleted: 0
 };
 
+const GAME_STATE_STORAGE_KEY = 'energyHeroGameState';
+const CUSTOM_TASKS_STORAGE_KEY = 'energyHeroCustomTasks';
+
+let customTasks = [];
+let lastAddedTaskId = null;
+let editingTaskId = null;
+
 // Task Definitions
 const allTasks = [
     {
@@ -107,28 +114,35 @@ const achievements = [
 
 // Initialize Game
 function initGame() {
-    // Reset to fresh state for testing
-    gameState = {
-        totalStars: 0,
-        completedTasks: [],
-        heroLevel: 'Học Viên',
-        achievements: [],
-        dailyTasksCompleted: 0
-    };
-    
-    // Clear any saved data to start fresh
-    localStorage.removeItem('energyHeroGameState');
-    
-    generateDailyTasks();
+    loadCustomTasks();
+    loadGameState();
+    updateHeroLevel();
     updateUI();
-    
-    // FORCE CREATE ACHIEVEMENTS immediately
-    console.log("🎯 INITIALIZING ACHIEVEMENTS...");
     checkAchievements();
-    
-    console.log("Game initialized with fresh state");
-    console.log("Total stars:", gameState.totalStars);
-    console.log("Hero level:", gameState.heroLevel);
+}
+
+function getAllTasks() {
+    return [...allTasks, ...customTasks];
+}
+
+function isCustomTaskId(taskId) {
+    return customTasks.some(t => t.id === taskId);
+}
+
+function normalizeTasksAfterCustomTaskChange(previousTaskById) {
+    if (!previousTaskById) return;
+
+    if (gameState.completedTasks.includes(previousTaskById.id)) {
+        const latest = getAllTasks().find(t => t.id === previousTaskById.id);
+        if (latest) {
+            const diff = (latest.stars || 0) - (previousTaskById.stars || 0);
+            if (diff !== 0) {
+                gameState.totalStars = Math.max(0, (gameState.totalStars || 0) + diff);
+            }
+        }
+        updateHeroLevel();
+        saveGameState();
+    }
 }
 
 // Generate Daily Tasks
@@ -137,8 +151,18 @@ function generateDailyTasks() {
     tasksContainer.innerHTML = '';
     
     // Select 6 random tasks for today
-    const shuffled = [...allTasks].sort(() => 0.5 - Math.random());
-    const dailyTasks = shuffled.slice(0, 6);
+    const pool = getAllTasks();
+    const shuffled = [...pool].sort(() => 0.5 - Math.random());
+    const dailyTasks = shuffled.slice(0, Math.min(6, shuffled.length));
+
+    if (lastAddedTaskId != null) {
+        const hasNew = dailyTasks.some(t => t.id === lastAddedTaskId);
+        const newTask = pool.find(t => t.id === lastAddedTaskId);
+        if (!hasNew && newTask) {
+            dailyTasks[dailyTasks.length ? dailyTasks.length - 1 : 0] = newTask;
+        }
+        lastAddedTaskId = null;
+    }
     
     dailyTasks.forEach(task => {
         const isCompleted = gameState.completedTasks.includes(task.id);
@@ -153,9 +177,23 @@ function createTaskCard(task, isCompleted) {
     card.className = `task-card bg-white rounded-xl p-6 shadow-lg cursor-pointer ${
         isCompleted ? 'completed-task opacity-75' : 'hover:shadow-xl'
     }`;
+
+    const customActions = isCustomTaskId(task.id)
+        ? `
+            <div class="flex justify-center space-x-2 mb-3">
+                <button onclick="editCustomTask(${task.id})" class="px-3 py-1 rounded-lg text-sm font-semibold bg-white/80 hover:bg-white text-purple-700 border border-purple-200">
+                    <i class="fas fa-pen mr-1"></i>Sửa
+                </button>
+                <button onclick="deleteCustomTask(${task.id})" class="px-3 py-1 rounded-lg text-sm font-semibold bg-white/80 hover:bg-white text-red-600 border border-red-200">
+                    <i class="fas fa-trash mr-1"></i>Xóa
+                </button>
+            </div>
+        `
+        : '';
     
     card.innerHTML = `
         <div class="text-center">
+            ${customActions}
             <div class="text-5xl mb-3 ${isCompleted ? 'grayscale' : ''}">${task.icon}</div>
             <h3 class="font-bold text-gray-800 mb-2">${task.title}</h3>
             <p class="text-sm text-gray-600 mb-4">${task.description}</p>
@@ -182,7 +220,7 @@ function createTaskCard(task, isCompleted) {
 function completeTask(taskId) {
     if (gameState.completedTasks.includes(taskId)) return;
     
-    const task = allTasks.find(t => t.id === taskId);
+    const task = getAllTasks().find(t => t.id === taskId);
     if (!task) return;
     
     console.log("🎉 Completing task:", task.title, "Stars:", task.stars);
@@ -401,7 +439,7 @@ function updateHeroLevel() {
     
     // Check if leveled up to 5 stars (Bảo Vệ Môi Trường) - Show victory celebration
     if (previousLevel !== 'Bảo Vệ Môi Trường' && gameState.heroLevel === 'Bảo Vệ Môi Trường') {
-        console.log("� Reached 5 stars! Showing victory celebration!");
+        console.log("🎉 Reached 5 stars! Showing victory celebration!");
         setTimeout(() => showVictoryModal(), 1000);
     }
     
@@ -977,15 +1015,197 @@ function resetDailyTasks() {
 
 // Save Game State
 function saveGameState() {
-    localStorage.setItem('energyHeroGameState', JSON.stringify(gameState));
+    localStorage.setItem(GAME_STATE_STORAGE_KEY, JSON.stringify(gameState));
 }
 
 // Load Game State
 function loadGameState() {
-    const saved = localStorage.getItem('energyHeroGameState');
-    if (saved) {
-        gameState = JSON.parse(saved);
+    const saved = localStorage.getItem(GAME_STATE_STORAGE_KEY);
+    if (!saved) return;
+
+    try {
+        const parsed = JSON.parse(saved);
+        gameState = {
+            totalStars: 0,
+            completedTasks: [],
+            heroLevel: 'Học Viên',
+            achievements: [],
+            dailyTasksCompleted: 0,
+            ...parsed
+        };
+    } catch (e) {
+        console.log('Failed to parse saved game state');
     }
+}
+
+function saveCustomTasks() {
+    localStorage.setItem(CUSTOM_TASKS_STORAGE_KEY, JSON.stringify(customTasks));
+}
+
+function loadCustomTasks() {
+    const saved = localStorage.getItem(CUSTOM_TASKS_STORAGE_KEY);
+    if (!saved) {
+        customTasks = [];
+        return;
+    }
+
+    try {
+        const parsed = JSON.parse(saved);
+        customTasks = Array.isArray(parsed) ? parsed : [];
+    } catch (e) {
+        customTasks = [];
+    }
+}
+
+function getNextTaskId() {
+    const ids = getAllTasks().map(t => t.id).filter(n => typeof n === 'number');
+    const maxId = ids.length ? Math.max(...ids) : 0;
+    return maxId + 1;
+}
+
+function openAddTaskModal() {
+    console.log('🔓 openAddTaskModal called!');
+    const modal = document.getElementById('addTaskModal');
+    const content = document.getElementById('addTaskModalContent');
+    console.log('🔍 Modal elements found:', { modal: !!modal, content: !!content });
+    if (!modal || !content) return;
+
+    const titleEl = document.getElementById('addTaskModalTitle');
+    const submitEl = document.getElementById('addTaskModalSubmit');
+    if (editingTaskId == null) {
+        if (titleEl) titleEl.textContent = 'Thêm nhiệm vụ mới';
+        if (submitEl) submitEl.textContent = 'Lưu nhiệm vụ';
+    }
+
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+
+    setTimeout(() => {
+        content.classList.remove('scale-0');
+        content.classList.add('scale-100');
+        const title = document.getElementById('newTaskTitle');
+        if (title) title.focus();
+    }, 50);
+}
+
+function closeAddTaskModal() {
+    const modal = document.getElementById('addTaskModal');
+    const content = document.getElementById('addTaskModalContent');
+    if (!modal || !content) return;
+
+    editingTaskId = null;
+
+    content.classList.remove('scale-100');
+    content.classList.add('scale-0');
+
+    setTimeout(() => {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }, 200);
+}
+
+function submitNewTask(event) {
+    event.preventDefault();
+
+    const titleEl = document.getElementById('newTaskTitle');
+    const descEl = document.getElementById('newTaskDescription');
+    const iconEl = document.getElementById('newTaskIcon');
+    const starsEl = document.getElementById('newTaskStars');
+    const colorEl = document.getElementById('newTaskColor');
+
+    const title = (titleEl?.value || '').trim();
+    const description = (descEl?.value || '').trim();
+    const icon = ((iconEl?.value || '').trim() || '📝').slice(0, 4);
+    const stars = Math.max(1, Math.min(3, parseInt(starsEl?.value || '1', 10) || 1));
+    const color = (colorEl?.value || 'from-green-400 to-emerald-500').trim();
+
+    if (!title || !description) return;
+
+    if (editingTaskId != null) {
+        const idx = customTasks.findIndex(t => t.id === editingTaskId);
+        if (idx >= 0) {
+            const previous = { ...customTasks[idx] };
+            customTasks[idx] = {
+                ...customTasks[idx],
+                icon,
+                title,
+                description,
+                stars,
+                color
+            };
+            saveCustomTasks();
+            normalizeTasksAfterCustomTaskChange(previous);
+        }
+    } else {
+        const newTask = {
+            id: getNextTaskId(),
+            icon,
+            title,
+            description,
+            stars,
+            color
+        };
+
+        customTasks.push(newTask);
+        saveCustomTasks();
+
+        lastAddedTaskId = newTask.id;
+    }
+
+    if (titleEl) titleEl.value = '';
+    if (descEl) descEl.value = '';
+    if (iconEl) iconEl.value = '';
+    if (starsEl) starsEl.value = '1';
+
+    closeAddTaskModal();
+    updateUI();
+}
+
+function editCustomTask(taskId) {
+    const task = customTasks.find(t => t.id === taskId);
+    if (!task) return;
+
+    editingTaskId = taskId;
+
+    const titleEl = document.getElementById('addTaskModalTitle');
+    const submitEl = document.getElementById('addTaskModalSubmit');
+    if (titleEl) titleEl.textContent = 'Sửa nhiệm vụ';
+    if (submitEl) submitEl.textContent = 'Lưu thay đổi';
+
+    const titleInput = document.getElementById('newTaskTitle');
+    const descInput = document.getElementById('newTaskDescription');
+    const iconInput = document.getElementById('newTaskIcon');
+    const starsSelect = document.getElementById('newTaskStars');
+    const colorSelect = document.getElementById('newTaskColor');
+
+    if (titleInput) titleInput.value = task.title || '';
+    if (descInput) descInput.value = task.description || '';
+    if (iconInput) iconInput.value = task.icon || '';
+    if (starsSelect) starsSelect.value = String(task.stars || 1);
+    if (colorSelect) colorSelect.value = task.color || 'from-green-400 to-emerald-500';
+
+    openAddTaskModal();
+}
+
+function deleteCustomTask(taskId) {
+    const task = customTasks.find(t => t.id === taskId);
+    if (!task) return;
+
+    if (!confirm('Bạn có chắc muốn xóa nhiệm vụ này?')) return;
+
+    customTasks = customTasks.filter(t => t.id !== taskId);
+    saveCustomTasks();
+
+    if (gameState.completedTasks.includes(taskId)) {
+        gameState.completedTasks = gameState.completedTasks.filter(id => id !== taskId);
+        gameState.totalStars = Math.max(0, (gameState.totalStars || 0) - (task.stars || 0));
+        gameState.dailyTasksCompleted = Math.max(0, (gameState.dailyTasksCompleted || 0) - 1);
+        updateHeroLevel();
+        saveGameState();
+    }
+
+    updateUI();
+    checkAchievements();
 }
 
 // Play Success Sound
@@ -1105,5 +1325,53 @@ function createSuccessVisual() {
     }
 }
 
+// Export functions to global scope
+Object.assign(window, {
+    resetDailyTasks,
+    completeTask,
+    closeModal,
+    closeVictoryModal,
+    openAddTaskModal,
+    closeAddTaskModal,
+    submitNewTask,
+    editCustomTask,
+    deleteCustomTask
+});
+
 // Initialize game when page loads
-document.addEventListener('DOMContentLoaded', initGame);
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🚀 DOM loaded, initializing game...');
+    console.log('🔍 Checking if functions are exported:', {
+        openAddTaskModal: typeof window.openAddTaskModal,
+        resetDailyTasks: typeof window.resetDailyTasks,
+        completeTask: typeof window.completeTask
+    });
+    
+    // Add event listeners for buttons
+    const addTaskBtn = document.getElementById('addTaskBtn');
+    const resetTasksBtn = document.getElementById('resetTasksBtn');
+    
+    if (addTaskBtn) {
+        addTaskBtn.addEventListener('click', function() {
+            console.log('🔓 Add task button clicked!');
+            if (window.openAddTaskModal) {
+                window.openAddTaskModal();
+            } else {
+                console.error('❌ openAddTaskModal not available!');
+            }
+        });
+    }
+    
+    if (resetTasksBtn) {
+        resetTasksBtn.addEventListener('click', function() {
+            console.log('🔄 Reset tasks button clicked!');
+            if (window.resetDailyTasks) {
+                window.resetDailyTasks();
+            } else {
+                console.error('❌ resetDailyTasks not available!');
+            }
+        });
+    }
+    
+    initGame();
+});
